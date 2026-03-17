@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import javax.swing.JOptionPane;
 import net.proteanit.sql.DbUtils;
 
@@ -15,6 +16,13 @@ public static Connection connectDB() {
         try {
             Class.forName("org.sqlite.JDBC"); // Load the SQLite JDBC driver
             con = DriverManager.getConnection("jdbc:sqlite:laundry.db"); // Establish connection
+            
+            // Enable WAL mode and set busy timeout to prevent locking issues
+            try (Statement st = con.createStatement()) {
+                st.execute("PRAGMA journal_mode=WAL;");
+                st.execute("PRAGMA busy_timeout=5000;");
+            }
+            
             System.out.println("Connection Successful");
         } catch (Exception e) {
             System.out.println("Connection Failed: " + e);
@@ -74,6 +82,27 @@ public void displayData(String sql, javax.swing.JTable table) {
         System.out.println("Error displaying data: " + e.getMessage());
     }
 }
+
+public String authenticate(String sql, Object... values) {
+    try (Connection conn = connectDB();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+        for (int i = 0; i < values.length; i++) {
+            pstmt.setObject(i + 1, values[i]);
+        }
+
+        try (ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                return rs.getString("type");
+            }
+        }
+    } catch (SQLException e) {
+        System.out.println("Login Error: " + e.getMessage());
+    }
+    return null;
+}
+
+
 
 
 

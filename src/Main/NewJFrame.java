@@ -5,8 +5,11 @@
  */
 package Main;
 
+import admin.ChangePasswordForm;
 import staff.StaffDashboard;
 import admin.AdminDashboard;
+import config.LogService;
+import config.Session;
 import config.config;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -51,8 +54,8 @@ public class NewJFrame extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         pass = new javax.swing.JPasswordField();
         jButton2 = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
+        login = new javax.swing.JButton();
+        exit = new javax.swing.JButton();
         jCheckBox1 = new javax.swing.JCheckBox();
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -152,25 +155,23 @@ public class NewJFrame extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setBackground(new java.awt.Color(102, 153, 255));
-        jButton1.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jButton1.setText("LOGIN");
-        jButton1.setBorder(null);
-        jButton1.setBorderPainted(false);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        login.setBackground(new java.awt.Color(102, 153, 255));
+        login.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        login.setText("LOGIN");
+        login.setBorderPainted(false);
+        login.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                loginActionPerformed(evt);
             }
         });
 
-        jButton3.setBackground(new java.awt.Color(102, 153, 255));
-        jButton3.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
-        jButton3.setText("EXIT");
-        jButton3.setBorder(null);
-        jButton3.setBorderPainted(false);
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
+        exit.setBackground(new java.awt.Color(102, 153, 255));
+        exit.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        exit.setText("EXIT");
+        exit.setBorderPainted(false);
+        exit.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+                exitActionPerformed(evt);
             }
         });
 
@@ -203,9 +204,9 @@ public class NewJFrame extends javax.swing.JFrame {
                             .addComponent(jLabel3))
                         .addGroup(LEFTLayout.createSequentialGroup()
                             .addGap(41, 41, 41)
-                            .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(exit, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGap(74, 74, 74)
-                            .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(login, javax.swing.GroupLayout.PREFERRED_SIZE, 117, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, LEFTLayout.createSequentialGroup()
                             .addContainerGap()
                             .addGroup(LEFTLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -233,8 +234,8 @@ public class NewJFrame extends javax.swing.JFrame {
                 .addComponent(jCheckBox1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 27, Short.MAX_VALUE)
                 .addGroup(LEFTLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(login, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(exit, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
                 .addComponent(jButton2)
                 .addGap(80, 80, 80))
@@ -262,7 +263,8 @@ public class NewJFrame extends javax.swing.JFrame {
        
     }//GEN-LAST:event_emailActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void loginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loginActionPerformed
+                                   
     String userEmail = email.getText();
     String userPass = String.valueOf(pass.getPassword());
 
@@ -271,52 +273,81 @@ public class NewJFrame extends javax.swing.JFrame {
         return;
     }
 
-    String sql = "SELECT type, status FROM tbl_accounts WHERE email = ? AND password = ?";
+   String sql = "SELECT U_id, name, type, status, is_default FROM tbl_accounts WHERE email = ? AND password = ?";
+
 
     try {
         config con = new config();
-
         
-        java.sql.Connection conn = con.connectDB();
+        int userId = -1;
+        String name = "";
+        String role = "";
+        String status = "";
+        int isDefault = -1;
+        boolean loginFound = false;
 
-        
-        PreparedStatement pst = conn.prepareStatement(sql);
-        pst.setString(1, userEmail);
-        pst.setString(2, userPass);
+        try (java.sql.Connection conn = con.connectDB();
+             PreparedStatement pst = conn.prepareStatement(sql)) {
+            
+            pst.setString(1, userEmail);
+            pst.setString(2, userPass);
 
-        ResultSet rs = pst.executeQuery();
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    userId = rs.getInt("U_id");
+                    name = rs.getString("name");
+                    role = rs.getString("type");
+                    status = rs.getString("status");
+                    isDefault = rs.getInt("is_default");
+                    loginFound = true;
+                }
+            }
+        }
 
-        if (rs.next()) {
-            String role = rs.getString("type");
-            String status = rs.getString("status");
-
+        if (loginFound) {
             if (!status.equals("Active")) {
                 JOptionPane.showMessageDialog(this, "Account not approved yet");
-            } else {
-                JOptionPane.showMessageDialog(this, "Login Successful!");
-
-                if (role.equals("Admin")) {
-                    new AdminDashboard().setVisible(true);
-                } else {
-                    new StaffDashboard().setVisible(true);
-                }
-
-                this.dispose();
+                return;
             }
+
+            if (isDefault == 1) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "This is your default password.\nYou must change your password first."
+                );
+                new ChangePasswordForm(userId).setVisible(true);
+                this.dispose();
+                return;
+            }
+
+            Session sess = Session.getInstance();
+            sess.setId(userId);
+            sess.setRole(role);
+            sess.setStatus(status);
+            sess.setname(name);
+
+            // Log action after closing the login connection
+            LogService.logAction(userId, "Logged In");
+
+            JOptionPane.showMessageDialog(this, "Login Successful!");
+
+            if (role.equals("Admin")) {
+                new AdminDashboard(userId).setVisible(true);
+            } else {
+                new StaffDashboard(userId).setVisible(true);
+            }
+
+            this.dispose();
 
         } else {
             JOptionPane.showMessageDialog(this, "Invalid email or password");
         }
 
-        
-        rs.close();
-        pst.close();
-        conn.close();
-
     } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Login error: " + e.getMessage());
-    }        
-    }//GEN-LAST:event_jButton1ActionPerformed
+        JOptionPane.showMessageDialog(this, "Login error: " + e.getMessage());      
+    }
+    
+    }//GEN-LAST:event_loginActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         SignUp SignUpFrame = new SignUp();
@@ -326,7 +357,7 @@ public class NewJFrame extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_jButton2ActionPerformed
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void exitActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitActionPerformed
         int choice = JOptionPane.showConfirmDialog(
         this,
         "Are you sure you want to exit the system?",
@@ -338,16 +369,16 @@ public class NewJFrame extends javax.swing.JFrame {
     if (choice == JOptionPane.YES_OPTION) {
         System.exit(0);
     }
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_exitActionPerformed
 
     
     private char defaultEchoChar;
 
     private void jCheckBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBox1ActionPerformed
     if (jCheckBox1.isSelected()) {
-        pass.setEchoChar((char) 0); // SHOW password
+        pass.setEchoChar((char) 0); 
     } else {
-        pass.setEchoChar(defaultEchoChar); // HIDE password
+        pass.setEchoChar(defaultEchoChar); 
     }
     }//GEN-LAST:event_jCheckBox1ActionPerformed
 
@@ -378,7 +409,7 @@ public class NewJFrame extends javax.swing.JFrame {
         }
         //</editor-fold>
 
-        /* Create and display the form */
+        
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
                 new NewJFrame().setVisible(true);
@@ -390,9 +421,8 @@ public class NewJFrame extends javax.swing.JFrame {
     private javax.swing.JPanel LEFT;
     private javax.swing.JPanel RIGHT;
     private javax.swing.JTextField email;
-    private javax.swing.JButton jButton1;
+    private javax.swing.JButton exit;
     private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
     private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -403,6 +433,7 @@ public class NewJFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JTextField jTextField1;
+    private javax.swing.JButton login;
     private javax.swing.JPasswordField pass;
     // End of variables declaration//GEN-END:variables
 }
