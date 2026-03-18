@@ -70,9 +70,18 @@ private void loadAllDashboardData() {
 
 private void loadCounts(Connection conn) {
     try {
-        String sqlTotal = "SELECT COUNT(*) FROM tbl_orders";
-        String sqlCompleted = "SELECT COUNT(*) FROM tbl_orders WHERE O_status='Completed'";
-        String sqlPending = "SELECT COUNT(*) FROM tbl_orders WHERE O_status='Pending'";
+        String sqlTotal = 
+            "SELECT COUNT(*) FROM tbl_orders " +
+            "WHERE date(order_date) = date('now')";
+
+        String sqlCompleted = 
+            "SELECT COUNT(*) FROM tbl_orders " +
+            "WHERE O_status='Completed' AND date(order_date) = date('now')";
+
+        
+        String sqlPending = 
+            "SELECT COUNT(*) FROM tbl_orders " +
+            "WHERE O_status='Pending'";
 
         try (PreparedStatement pst = conn.prepareStatement(sqlTotal);
              ResultSet rs = pst.executeQuery()) {
@@ -88,6 +97,7 @@ private void loadCounts(Connection conn) {
              ResultSet rs = pst.executeQuery()) {
             if(rs.next()) lblPending.setText(rs.getString(1));
         }
+
     } catch (Exception e) {
         e.printStackTrace();
     }
@@ -129,7 +139,7 @@ private void loadAllOrders(){
 
     lblTableTitle.setText("Total Orders Today");
 
-    loadTable("SELECT * FROM tbl_orders");
+    loadTable("SELECT * FROM tbl_orders WHERE date(order_date) = date('now')");
 
 }
 
@@ -137,7 +147,7 @@ private void loadCompletedOrders(){
 
     lblTableTitle.setText("Completed Orders Today");
 
-    loadTable("SELECT * FROM tbl_orders WHERE O_status='Completed'");
+    loadTable("SELECT * FROM tbl_orders WHERE O_status='Completed' AND date(order_date) = date('now')");
 
 }
 
@@ -426,7 +436,9 @@ private void loadTable(String sql){
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 580, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 580, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(15, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
