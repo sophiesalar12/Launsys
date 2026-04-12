@@ -127,7 +127,7 @@ public void loadRecentActivity() {
     String sql =
     "SELECT a.type AS User, l.action AS Action, l.date_time AS Time " +
     "FROM tbl_logs l " +
-    "JOIN tbl_accounts a ON l.user_id = a.U_id ";
+    "JOIN tbl_accounts a ON l.U_id = a.U_id ";
 
     if(!userType.equals("All")){
         sql += "WHERE a.type = ? ";
@@ -177,7 +177,7 @@ public void loadRecentActivityByDate(String dateFrom, String dateTo){
     String sql =
     "SELECT a.type AS User, l.action AS Action, l.date_time AS Time " +
     "FROM tbl_logs l " +
-    "JOIN tbl_accounts a ON l.user_id = a.U_id " +
+    "JOIN tbl_accounts a ON l.U_id = a.U_id " +
     "WHERE date(l.date_time) BETWEEN ? AND ? ";
 
     if(!userType.equals("All")){

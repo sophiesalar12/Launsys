@@ -6,7 +6,7 @@ import java.sql.PreparedStatement;
 public class LogService {
 
     public static void logAction(int userId, String action) {
-        String sql = "INSERT INTO tbl_logs (user_id, action, date_time) VALUES (?, ?, datetime('now','localtime'))";
+        String sql = "INSERT INTO tbl_logs (U_id, action, date_time) VALUES (?, ?, datetime('now','localtime'))";
 
         try (Connection con = config.connectDB();
              PreparedStatement pst = con.prepareStatement(sql)) {

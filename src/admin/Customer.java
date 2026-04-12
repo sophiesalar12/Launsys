@@ -184,24 +184,10 @@ public javax.swing.JFrame dashboard;
 
     private void deletebActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletebActionPerformed
 
-     int row = table_customers.getSelectedRow();
+    int row = table_customers.getSelectedRow();
 
     if (row == -1) {
         JOptionPane.showMessageDialog(this, "Select Customer First");
-        return;
-    }
-
-
-    int confirm = JOptionPane.showConfirmDialog(
-        this,
-        "Are you sure you want to delete this customer?",
-        "Confirm Delete",
-        JOptionPane.YES_NO_OPTION,
-        JOptionPane.WARNING_MESSAGE
-    );
-
- 
-    if (confirm != JOptionPane.YES_OPTION) {
         return;
     }
 
@@ -210,6 +196,37 @@ public javax.swing.JFrame dashboard;
     try {
         config conf = new config();
         Connection conn = conf.connectDB();
+
+
+        String checkSql = "SELECT COUNT(*) FROM tbl_orders WHERE C_id=? AND O_status != 'Completed'";
+        PreparedStatement checkPst = conn.prepareStatement(checkSql);
+        checkPst.setInt(1, id);
+
+        ResultSet rs = checkPst.executeQuery();
+
+        if (rs.next() && rs.getInt(1) > 0) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Cannot delete this customer.\nCustomer has ongoing orders!",
+                "Delete Not Allowed",
+                JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+
+
+        int confirm = JOptionPane.showConfirmDialog(
+            this,
+            "Are you sure you want to delete this customer?",
+            "Confirm Delete",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm != JOptionPane.YES_OPTION) {
+            return;
+        }
+
 
         String sql = "DELETE FROM tbl_customers WHERE C_id=?";
         PreparedStatement pst = conn.prepareStatement(sql);
@@ -228,6 +245,7 @@ public javax.swing.JFrame dashboard;
     } catch (Exception e) {
         JOptionPane.showMessageDialog(this, e);
     }
+    
     }//GEN-LAST:event_deletebActionPerformed
 
     private void searchbActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_searchbActionPerformed
